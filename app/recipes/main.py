@@ -53,12 +53,6 @@ def update_recipe(recipe_id: int, recipe: schemas.RecipeCreate, db: Session = De
     db.refresh(db_recipe)
     return db_recipe
 
-@app.delete("/recipes/all")
-def delete_all_recipes(db: Session = Depends(get_db)):
-    db.query(models.Recipe).delete()
-    db.commit()
-    return {"message": "All recipes deleted successfully"}
-
 @app.delete("/recipes/{recipe_id}")
 def delete_recipe(recipe_id: int, db: Session = Depends(get_db)):
     db_recipe = db.query(models.Recipe).filter(models.Recipe.id == recipe_id).first()
