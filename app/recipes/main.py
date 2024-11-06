@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List
 from . import models
@@ -8,6 +9,16 @@ from .database import get_db, engine
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Recipe API")
+
+
+@app.get("/health")
+async def health_check(db: Session = Depends(get_db)):
+    try:
+        # Test database connection
+        db.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Database connection failed")
 
 @app.post("/recipes/", response_model=schemas.Recipe)
 def create_recipe(recipe: schemas.RecipeCreate, db: Session = Depends(get_db)):
