@@ -1,0 +1,6 @@
+shift_yourself_left:
+  outputs:
+    dev:
+      type: duckdb
+      path: shift_yourself_left.duckdb
+  target: dev

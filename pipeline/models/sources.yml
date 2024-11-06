@@ -1,0 +1,5 @@
+sources:
+  - name: recipes_raw
+    schema: recipes_raw
+    tables:
+      - name: recipes
