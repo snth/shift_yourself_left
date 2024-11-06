@@ -4,21 +4,43 @@
 # Make the script exit on any error
 set -e
 
-# Build and start the containers
-docker-compose up -d
+# Clean up function
+cleanup() {
+    echo "Cleaning up..."
+    docker compose down
+    docker network rm recipe-network || true
+}
 
-# Wait for the web service to be fully up (checking health endpoint)
-echo "Waiting for services to be ready..."
-bash -c 'SECONDS=0; while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:8000/health)" != "200" ]]; do if (( SECONDS > 30 )); then echo "Timed out"; exit 1; fi; sleep 5; done' || exit 1
+# Setup cleanup trap
+trap cleanup EXIT
 
-# Run the integration tests
-docker-compose run integration-tests
+# Remove any existing network first
+docker network rm recipe-network || true
 
-# Capture the exit code
-TEST_EXIT_CODE=$?
+# Create a fresh network
+docker network create recipe-network
 
-# Clean up
-docker-compose down
+echo "Starting services and running integration tests..."
+docker compose up --abort-on-container-exit integration-tests
+INTEGRATION_TEST_EXIT=$?
 
-# Exit with the test exit code
-exit $TEST_EXIT_CODE
+if [ $INTEGRATION_TEST_EXIT -eq 0 ]; then
+    echo "Integration tests passed successfully. Running pipeline..."
+    # Don't bring down the network between runs
+    docker compose up --abort-on-container-exit pipeline
+    PIPELINE_EXIT=$?
+    
+    if [ $PIPELINE_EXIT -eq 0 ]; then
+        echo "Pipeline completed successfully!"
+        docker compose down -v  # Clean up everything including network
+        exit 0
+    else
+        echo "Pipeline failed with exit code $PIPELINE_EXIT"
+        docker compose down -v  # Clean up everything including network
+        exit $PIPELINE_EXIT
+    fi
+else
+    echo "Integration tests failed with exit code $INTEGRATION_TEST_EXIT. Pipeline will not run."
+    docker compose down -v  # Clean up everything including network
+    exit $INTEGRATION_TEST_EXIT
+fi

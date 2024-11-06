@@ -1,3 +1,7 @@
+networks:
+  recipe-network:
+    name: recipe-network
+    external: true
 
 services:
   db:
@@ -10,7 +14,9 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - /var/lib/mysql
+    networks:
+      - recipe-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
       interval: 5s
@@ -27,6 +33,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - recipe-network
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
@@ -42,6 +50,19 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    networks:
+      - recipe-network
 
-volumes:
-  mysql_data:
+  pipeline:
+    build:
+      context: ../pipeline
+    environment:
+      DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
+    command: ./run_all.sh
+    depends_on:
+      integration-tests:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    networks:
+      - recipe-network
