@@ -6,4 +6,9 @@
 **/__pycache__/
 **/*.py[cod]
 **/*$py.class
+
 secrets.toml
+
+target/
+dbt_packages/
+logs/
