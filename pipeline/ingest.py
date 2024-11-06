@@ -1,7 +1,5 @@
-# flake8: noqa
 import humanize
 import os
-import sqlalchemy
 
 import dlt
 from dlt.sources.credentials import ConnectionStringCredentials
@@ -22,6 +20,7 @@ def load_entire_database() -> None:
     info = pipeline.run(source, write_disposition="replace")
     print(humanize.precisedelta(pipeline.last_trace.finished_at - pipeline.last_trace.started_at))
     print(info)
+    print(info.metrics)
 
 
 if __name__ == "__main__":

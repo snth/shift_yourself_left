@@ -21,13 +21,13 @@ docker network rm recipe-network || true
 docker network create recipe-network
 
 echo "Starting services and running integration tests..."
-docker compose up --abort-on-container-exit integration-tests
+docker compose up integration-tests --build
 INTEGRATION_TEST_EXIT=$?
 
 if [ $INTEGRATION_TEST_EXIT -eq 0 ]; then
     echo "Integration tests passed successfully. Running pipeline..."
     # Don't bring down the network between runs
-    docker compose up --abort-on-container-exit pipeline
+    docker compose up pipeline --build --abort-on-container-exit
     PIPELINE_EXIT=$?
     
     if [ $PIPELINE_EXIT -eq 0 ]; then

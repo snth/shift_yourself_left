@@ -1,2 +1,2 @@
 SELECT COUNT(*) cnt
-FROM {{ source('recipes_raw', 'recipes') }}
+FROM {{ ref('recipes') }}
