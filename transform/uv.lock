@@ -837,8 +837,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dbt-core", specifier = "==1.8.8" },
-    { name = "dbt-duckdb", specifier = "==1.8.4" },
+    { name = "dbt-core" },
+    { name = "dbt-duckdb" },
 ]
 
 [[package]]
