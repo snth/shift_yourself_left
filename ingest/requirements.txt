@@ -1,4 +1,0 @@
-dlt[duckdb]
-sqlalchemy
-pymysql
-pyarrow

@@ -5,7 +5,7 @@
 set -e
 
 # Remove any existing containers
-docker compose down --remove-orphans &>/dev/null || true
+docker compose down -v --remove-orphans &>/dev/null || true
 
 # Remove any existing network first
 docker network rm recipe-network &>/dev/null || true

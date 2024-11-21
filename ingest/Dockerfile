@@ -1,11 +1,12 @@
-FROM python:3.11-slim
+# Dockerfile
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
-WORKDIR /load
+WORKDIR /ingest
 
-COPY requirements.txt .
-#RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install -r requirements.txt
+# Sync the project into a new environment, using the frozen lockfile
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen
 
-COPY . .
+COPY ingest.py .
 
-CMD ["python3", "ingest.py"]
+CMD ["uv", "run", "python", "ingest.py"]

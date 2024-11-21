@@ -8,7 +8,10 @@ from dlt.sources.sql_database import sql_database
 
 def load_entire_database() -> None:
     """Use the sql_database source to completely load all tables in a database"""
-    pipeline = dlt.pipeline(pipeline_name="shift_yourself_left", destination='duckdb', dataset_name="recipes_raw")
+    pipeline = dlt.pipeline(pipeline_name="shift_yourself_left",
+                            destination=dlt.destinations.duckdb("/data/warehouse.duckdb"),
+                            #destination="duckdb",  # TODO: How can we specify this via environment variable?
+                            dataset_name="recipes_raw")
 
     database_url = os.getenv("DATABASE_URL")
     if not database_url:

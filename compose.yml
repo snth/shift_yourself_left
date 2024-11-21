@@ -9,6 +9,10 @@ services:
       context: app
     ports:
       - "8000:8000"
+    volumes:
+      - shared_data:/data
+    environment:
+      DATABASE_URL: &db_url "sqlite:////data/recipes.db"
     networks:
       - recipe-network
     healthcheck:
@@ -31,6 +35,11 @@ services:
   ingest:
     build:
       context: ingest
+    volumes:
+      - shared_data:/data
+    environment:
+      DATABASE_URL: *db_url
+      #DESTINATION__DUCKDB__BUCKET_URL: "duckdb:////data/warehouse.duckdb"
     depends_on:
       app:
         condition: service_healthy
@@ -58,3 +67,7 @@ services:
         condition: service_completed_successfully
     networks:
       - recipe-network
+
+volumes:
+  shared_data:
+    driver: local
