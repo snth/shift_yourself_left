@@ -13,4 +13,4 @@ docker network rm recipe-network &>/dev/null || true
 # Create a fresh network
 docker network create recipe-network
 
-docker compose up --build ${1:-transform}
+docker compose up --build ${1:-app}

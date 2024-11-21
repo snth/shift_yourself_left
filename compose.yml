@@ -59,8 +59,6 @@ services:
     environment:
       DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
     depends_on:
-      app_tests:
-        condition: service_completed_successfully
       db:
         condition: service_healthy
     networks:
@@ -76,5 +74,20 @@ services:
         condition: service_completed_successfully
       db:
         condition: service_healthy
+    networks:
+      - recipe-network
+
+  integration_tests:
+    build:
+      context: transform
+    environment:
+      DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
+    depends_on:
+      app_tests:
+        condition: service_completed_successfully
+      ingest:
+        condition: service_completed_successfully
+      transform:
+        condition: service_completed_successfully
     networks:
       - recipe-network
