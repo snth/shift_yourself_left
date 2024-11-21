@@ -23,9 +23,9 @@ services:
       timeout: 5s
       retries: 5
 
-  web:
+  app:
     build:
-      context: ../app
+      context: app
     ports:
       - "8000:8000"
     environment:
@@ -41,26 +41,38 @@ services:
       timeout: 10s
       retries: 5
 
-  integration-tests:
-    build: .
+  app_tests:
+    build: app_tests
     environment:
-      API_BASE_URL: "http://web:8000"
+      API_BASE_URL: "http://app:8000"
       DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
     command: pytest tests/ -v
     depends_on:
-      web:
+      app:
         condition: service_healthy
     networks:
       - recipe-network
 
-  pipeline:
+  ingest:
     build:
-      context: ../pipeline
+      context: ingest
     environment:
       DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
-    command: ./run_all.sh
     depends_on:
-      integration-tests:
+      app_tests:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    networks:
+      - recipe-network
+
+  transform:
+    build:
+      context: transform
+    environment:
+      DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
+    depends_on:
+      ingest:
         condition: service_completed_successfully
       db:
         condition: service_healthy

@@ -5,7 +5,7 @@ import asyncio
 from typing import Generator
 import pytest_asyncio
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://web:8000")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://app:8000")
 
 @pytest_asyncio.fixture
 async def client():
