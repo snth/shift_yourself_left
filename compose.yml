@@ -4,35 +4,11 @@ networks:
     external: true
 
 services:
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: recipe_db
-      MYSQL_USER: recipe_user
-      MYSQL_PASSWORD: recipe_password
-    ports:
-      - "3306:3306"
-    volumes:
-      - /var/lib/mysql
-    networks:
-      - recipe-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   app:
     build:
       context: app
     ports:
       - "8000:8000"
-    environment:
-      DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
-    depends_on:
-      db:
-        condition: service_healthy
     networks:
       - recipe-network
     healthcheck:
@@ -45,7 +21,6 @@ services:
     build: app_tests
     environment:
       API_BASE_URL: "http://app:8000"
-      DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
     command: pytest tests/ -v
     depends_on:
       app:
@@ -56,10 +31,8 @@ services:
   ingest:
     build:
       context: ingest
-    environment:
-      DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
     depends_on:
-      db:
+      app:
         condition: service_healthy
     networks:
       - recipe-network
@@ -67,21 +40,15 @@ services:
   transform:
     build:
       context: transform
-    environment:
-      DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
     depends_on:
       ingest:
         condition: service_completed_successfully
-      db:
-        condition: service_healthy
     networks:
       - recipe-network
 
   integration_tests:
     build:
       context: transform
-    environment:
-      DATABASE_URL: "mysql+pymysql://recipe_user:recipe_password@db/recipe_db"
     depends_on:
       app_tests:
         condition: service_completed_successfully
