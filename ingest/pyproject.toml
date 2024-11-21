@@ -1,12 +1,11 @@
 [project]
 name = "ingest"
 version = "0.1.0"
-description = "Add your description here"
+description = "Example data ingestion with dlt"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "dlt[duckdb]>=1.4.0",
-    "pyarrow>=18.0.0",
-    "pymysql>=1.1.1",
-    "sqlalchemy>=2.0.36",
+    "dlt[duckdb]",
+    "pyarrow",
+    "sqlalchemy",
 ]
