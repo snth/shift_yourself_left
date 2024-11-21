@@ -1,10 +1,15 @@
-FROM python:3.11-slim
+# Dockerfile
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
-WORKDIR /tests
+WORKDIR /app_tests
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Sync the project into a new environment, using the frozen lockfile
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen
 
-COPY . .
+# Activate the environment
+ENV PATH="/app_tests/.venv/bin:$PATH"
 
-CMD ["pytest", "tests/", "-v"]
+COPY tests/ ./tests/
+
+CMD ["uv", "run", "pytest", "tests/", "-v"]
