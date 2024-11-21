@@ -5,10 +5,9 @@ description = "API tests for example web app"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "cryptography==41.0.5",
-    "httpx==0.25.1",
-    "pymysql==1.1.0",
-    "pytest-asyncio==0.21.1",
-    "pytest==7.4.3",
-    "python-dotenv==1.0.0",
+    "cryptography",
+    "httpx",
+    "pytest-asyncio",
+    "pytest",
+    "python-dotenv",
 ]
