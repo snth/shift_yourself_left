@@ -2,5 +2,5 @@ shift_yourself_left:
   outputs:
     dev:
       type: duckdb
-      path: shift_yourself_left.duckdb
+      path: /data/warehouse.duckdb
   target: dev

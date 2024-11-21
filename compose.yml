@@ -43,12 +43,16 @@ services:
     depends_on:
       app:
         condition: service_healthy
+      app_tests:
+        condition: service_completed_successfully
     networks:
       - recipe-network
 
   transform:
     build:
       context: transform
+    volumes:
+      - shared_data:/data
     depends_on:
       ingest:
         condition: service_completed_successfully
