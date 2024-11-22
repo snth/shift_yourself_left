@@ -31,6 +31,7 @@ INTEGRATION_TEST_EXIT=$?
 if [ $INTEGRATION_TEST_EXIT -eq 0 ]; then
     echo "Integration tests passed successfully. Running pipeline..."
     # Don't bring down the network between runs
+    docker compose down --remove-orphans
     docker compose up pipeline --build --abort-on-container-exit
     PIPELINE_EXIT=$?
 
