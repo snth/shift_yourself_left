@@ -14,10 +14,14 @@ cleanup() {
 # Setup cleanup trap
 trap cleanup EXIT
 
+# Cleanup any orphan containers that may be blocking ports
+docker compose down --remove-orphans &>/dev/null || true
+
 # Remove any existing network first
-docker network rm recipe-network || true
+docker network rm recipe-network &>/dev/null || true
 
 # Create a fresh network
+echo "Creating a fresh network ?."
 docker network create recipe-network
 
 echo "Starting services and running integration tests..."
@@ -29,7 +33,7 @@ if [ $INTEGRATION_TEST_EXIT -eq 0 ]; then
     # Don't bring down the network between runs
     docker compose up pipeline --build --abort-on-container-exit
     PIPELINE_EXIT=$?
-    
+
     if [ $PIPELINE_EXIT -eq 0 ]; then
         echo "Pipeline completed successfully!"
         docker compose down -v  # Clean up everything including network
