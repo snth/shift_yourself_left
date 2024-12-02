@@ -1,0 +1,7 @@
+raw-*
+garage.*
+
+data/
+meta/
+
+.awsrc
