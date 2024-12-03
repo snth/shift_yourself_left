@@ -37,30 +37,44 @@ admin_token = "${GARAGE_ADMIN_TOKEN}"
 metrics_token = "${GARAGE_METRICS_TOKEN}"
 EOF
 
+# Run the following in a backgrounded subshell
+# so that we can exec into the garage process at the end
+{
+  while :; do
+    echo "Waiting for garage server to start ..."
+    /garage -c "${GARAGE_CONFIG_FILE}" status && break || sleep 1
+  done
+
+  # Create a garage node layout and apply it
+  echo "Creating garage node ..."
+  GARAGE_NODE=$(/garage -c "${GARAGE_CONFIG_FILE}" status | tail -n 1 | cut -d' ' -f1)
+  echo "Assigning node ${GARAGE_NODE} to dc1 ..."
+  /garage -c "${GARAGE_CONFIG_FILE}" layout assign -z dc1 -c 1G "${GARAGE_NODE}"
+  /garage -c "${GARAGE_CONFIG_FILE}" layout show
+  LAYOUT_VERSION=$(/garage -c "${GARAGE_CONFIG_FILE}" layout show | tail -n 1 | cut -d' ' -f5)
+  /garage -c "${GARAGE_CONFIG_FILE}" layout apply --version $((LAYOUT_VERSION + 1))
+
+  # Create  a garage key
+  echo "Creating garage key ..."
+  /garage key create app-key | tee app-key.txt
+  GARAGE_KEY_ID=$(grep 'Key ID' app-key.txt | cut -d' ' -f3)
+  GARAGE_KEY_SECRET=$(grep 'Secret key' app-key.txt | cut -d' ' -f3)
+  echo "Run the following command to use the garage key:"
+  echo
+  echo "cat >.awsrc <<EOF"
+  cat >.awsrc <<EOF
+export AWS_ACCESS_KEY_ID="${GARAGE_KEY_ID}"
+export AWS_SECRET_ACCESS_KEY="${GARAGE_KEY_SECRET}"
+export AWS_DEFAULT_REGION="garage"
+export AWS_ENDPOINT_URL="http://localhost:3900"
+EOF
+  cat .awsrc
+  echo EOF
+  echo source .awsrc
+  echo "# or"
+  echo "docker cp garage:/.awsrc . && source .awsrc"
+} &
+
 # Start garage server
 echo "Starting garage server ..."
-/garage -c "${GARAGE_CONFIG_FILE}" server &
-GARAGE_SERVER_PID=$!
-while :; do
-  echo "Waiting for garage server to start ..."
-  /garage -c "${GARAGE_CONFIG_FILE}" status && break || sleep 1
-done
-
-# Create a garage node
-echo "Creating garage node ..."
-# /garage -c "${GARAGE_CONFIG_FILE}" status | tail -n 1 | cut -d' ' -f1 | tee garage_node
-GARAGE_NODE=$(/garage -c "${GARAGE_CONFIG_FILE}" status | tail -n 1 | cut -d' ' -f1)
-echo "Assigning node ${GARAGE_NODE} to dc1 ..."
-/garage -c "${GARAGE_CONFIG_FILE}" layout assign -z dc1 -c 1G "${GARAGE_NODE}"
-/garage -c "${GARAGE_CONFIG_FILE}" layout show
-LAYOUT_VERSION=$(/garage -c "${GARAGE_CONFIG_FILE}" layout show | tail -n 1 | cut -d' ' -f5)
-/garage -c "${GARAGE_CONFIG_FILE}" layout apply --version $((LAYOUT_VERSION + 1))
-
-# Create  a garage key
-echo "Creating garage key ..."
-/garage key create app-key | tee app-key.txt
-GARAGE_KEY_ID=$(grep 'Key ID' app-key.txt | cut -d' ' -f3)
-GARAGE_KEY_SECRET=$(grep 'Secret key' app-key.txt | cut -d' ' -f3)
-
-# Finish
-wait "${GARAGE_SERVER_PID}"
+exec /garage -c "${GARAGE_CONFIG_FILE}" server
