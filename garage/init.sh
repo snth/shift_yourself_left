@@ -56,9 +56,21 @@ EOF
 
   # Create  a garage key
   echo "Creating garage key ..."
-  /garage key create app-key | tee app-key.txt
+  /garage key create app-key >app-key.txt
   GARAGE_KEY_ID=$(grep 'Key ID' app-key.txt | cut -d' ' -f3)
   GARAGE_KEY_SECRET=$(grep 'Secret key' app-key.txt | cut -d' ' -f3)
+
+  # Give the key permission to create buckets
+  /garage key allow --create-bucket app-key
+
+  # Create a bucket
+  /garage bucket create recipes
+  /garage bucket list
+  /garage bucket info recipes
+  /garage bucket allow --read --write --owner recipes --key app-key
+
+  # Inform the user how to use the key
+  /garage key info app-key
   echo "Run the following command to use the garage key:"
   echo
   echo "cat >.awsrc <<EOF"
@@ -73,6 +85,12 @@ EOF
   echo source .awsrc
   echo "# or"
   echo "docker cp garage:/.awsrc . && source .awsrc"
+  echo
+  echo Test the key with:
+  echo
+  echo aws s3 ls
+  echo aws s3 cp Dockerfile s3://recipes/
+  echo aws s3 ls s3://recipes/
 } &
 
 # Start garage server

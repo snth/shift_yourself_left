@@ -11,6 +11,6 @@ docker compose down -v --remove-orphans &>/dev/null || true
 docker network rm recipe-network &>/dev/null || true
 
 # Create a fresh network
-docker network create recipe-network
+docker network create recipe-network &>/dev/null || true
 
 docker compose up --build ${1:-app}
